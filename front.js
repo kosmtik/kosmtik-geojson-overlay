@@ -10,11 +10,23 @@ L.K.Map.addInitHook(function () {
             },
             style = {
                 color: '#F89406',
-                weight: 3,
+                weight: 3
             },
             params = {
                 active: false,
                 data: null
+            },
+            builder = new L.K.FormBuilder(params, [
+                ['active', {handler: L.K.Switch, label: 'Active (ctrl+alt+G)'}],
+                ['data', {handler: 'Textarea', placeholder: 'Paste your geojson here.'}]
+            ], {id: 'geojson-overlay-form'}),
+            syncState = function () {
+                if (params.active) {
+                    this.geojsonOverlay.addTo(this);
+                } else {
+                    this.removeLayer(this.geojsonOverlay);
+                }
+                builder.fetchAll();
             },
             addGeojson = function () {
                 var geojson;
@@ -29,22 +41,13 @@ L.K.Map.addInitHook(function () {
                 L.bind(syncState, this)();
                 this.unsetState('loading');
             },
-            syncState = function () {
-                if (params.active) {
-                    this.geojsonOverlay.addTo(this);
-                } else {
-                    this.removeLayer(this.geojsonOverlay);
-                }
-                builder.fetchAll();
-            },
             toggle = function () {
                 params.active = !params.active;
                 L.bind(syncState, this)();
             },
-            builder = new L.K.FormBuilder(params, [
-                ['active', {handler: L.K.Switch, label: 'Active (ctrl+alt+G)'}],
-                ['data', {handler: 'Textarea', placeholder: 'Paste your geojson here.'}]
-            ], {id: 'geojson-overlay-form'});
+            fitBounds = function (e) {
+                this.fitBounds(this.geojsonOverlay.getBounds());
+            };
         title.innerHTML = 'GeoJSON overlay';
         this.geojsonOverlay = L.geoJson(null, {pointToLayer: pointToLayer, onEachFeature: onEachFeature, style: style});
         builder.on('synced', function (e) {
@@ -52,11 +55,14 @@ L.K.Map.addInitHook(function () {
             else if (e.field === 'active') L.bind(syncState, this)();
         }, this);
         container.appendChild(builder.build());
+        var zoomTo = L.DomUtil.create('a', 'button', container);
+        zoomTo.innerHTML = "Zoom to";
+        L.DomEvent.on(zoomTo, 'click', L.DomEvent.stop).on(zoomTo, 'click', fitBounds, this);
         this.sidebar.addTab({
             label: 'GeoJSON',
             className: 'geojson-overlay',
             content: container,
-            callback: function () {builder.helpers.data.input.focus();},
+            callback: function () {builder.helpers.data.input.focus();}
         });
         this.commands.add({
             keyCode: L.K.Keys.G,
@@ -70,6 +76,11 @@ L.K.Map.addInitHook(function () {
             callback: function () {this.sidebar.open('.geojson-overlay');},
             context: this,
             name: 'GeoJSON overlay: configure'
+        });
+        this.commands.add({
+            callback: fitBounds,
+            context: this,
+            name: 'GeoJSON overlay: zoom to'
         });
     });
 });
