@@ -50,19 +50,19 @@ L.K.Map.addInitHook(function () {
             };
         title.innerHTML = 'GeoJSON overlay';
         this.geojsonOverlay = L.geoJson(null, {pointToLayer: pointToLayer, onEachFeature: onEachFeature, style: style});
-        builder.on('synced', function (e) {
-            if (e.field === 'data') L.bind(addGeojson, this)();
-            else if (e.field === 'active') L.bind(syncState, this)();
+        builder.on('postsync', function (e) {
+            if (e.helper.field === 'data') L.bind(addGeojson, this)();
+            else if (e.helper.field === 'active') L.bind(syncState, this)();
         }, this);
         container.appendChild(builder.build());
         var zoomTo = L.DomUtil.create('a', 'button', container);
-        zoomTo.innerHTML = "Zoom to";
+        zoomTo.innerHTML = 'Zoom to';
         L.DomEvent.on(zoomTo, 'click', L.DomEvent.stop).on(zoomTo, 'click', fitBounds, this);
         this.sidebar.addTab({
             label: 'GeoJSON',
             className: 'geojson-overlay',
             content: container,
-            callback: function () {builder.helpers.data.input.focus();}
+            callback: function () { builder.helpers.data.input.focus(); }
         });
         this.commands.add({
             keyCode: L.K.Keys.G,
@@ -73,7 +73,7 @@ L.K.Map.addInitHook(function () {
             name: 'GeoJSON overlay: toggle'
         });
         this.commands.add({
-            callback: function () {this.sidebar.open('.geojson-overlay');},
+            callback: function () { this.sidebar.open('.geojson-overlay'); },
             context: this,
             name: 'GeoJSON overlay: configure'
         });
