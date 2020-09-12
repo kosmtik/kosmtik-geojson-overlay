@@ -4,4 +4,4 @@ class GeoJsonOverlay {
     }
 }
 
-exports = { Plugin: GeoJsonOverlay }
+exports = module.exports = { Plugin: GeoJsonOverlay }
